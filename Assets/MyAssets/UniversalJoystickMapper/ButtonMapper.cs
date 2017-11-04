@@ -41,13 +41,11 @@ public class ButtonMapper : Selectable, IPointerClickHandler
     public event OnVariableChangeDelegate OnActiveChange;
     public event OnVariableChangeDelegate OnSubmitChange;
 
-    protected override void Start()
+    protected override void Awake()
     {
         OnActiveChange += OnActiveChangeHandler;
         OnSubmitChange += OnSubmitChangeHandler;
         button = GetButtonValue(btnNumber.text);
-        if (UniversalJoystickMapper.CurrentJoystickBeingMapped.state.Buttons[(int)button] != false)
-            OnSubmit = true;
     }
 
     private void Update()
@@ -55,16 +53,27 @@ public class ButtonMapper : Selectable, IPointerClickHandler
         if (m_IsActive && GetJoystickButtonPressed())
         {
             m_IsActive = false;
-            onSubmit = true;
+            OnSubmit = true;
         }
+    }
 
+    protected override void OnEnable()
+    {
+        if (UniversalJoystickMapper.CurrentJoystickBeingMapped.state.ButtonsStates[(int)button])
+            OnSubmit = true;
+    }
 
+    protected override void OnDisable()
+    {
+        OnSubmit = false;
     }
 
     private void OnActiveChangeHandler(bool newValue)
     {
         if (newValue)
+        {
             m_image.color = Color.gray;
+        }
         else
             m_image.color = Color.green;
     }
@@ -74,8 +83,11 @@ public class ButtonMapper : Selectable, IPointerClickHandler
         if (newValue)
         {
             m_image.color = Color.green;
-            UniversalJoystickMapper.CurrentJoystickBeingMapped.state.Buttons[(int)button] = true;
+            UniversalJoystickMapper.CurrentJoystickBeingMapped.state.ButtonsStates[(int)button] = true;
         }
+        else
+            m_image.color = Color.white;
+
     }
 
 
@@ -86,33 +98,92 @@ public class ButtonMapper : Selectable, IPointerClickHandler
 
     private bool GetJoystickButtonPressed()
     {
-        int joyNum = 1; // start at 1 because unity calls them joystick 1 - 4
-        int buttonNum = 0;
-        int keyCode = 350; // start at joy 1 keycode
+        JoystickConfig currentJoystick = UniversalJoystickMapper.CurrentJoystickBeingMapped;
+        int joyNum = currentJoystick.joystickNumber + 1;
+        int keyCode;
 
-        // log button presses on 3 joysticks (20 button inputs per joystick)
-        // NOTE THAT joystick 4 is not supported via keycodes for some reason, so only polling 1-3
-        for (int i = 0; i < 160; i++)
+        switch ("Joystick"+joyNum+"Button"+0)
+        {
+            case "Joystick1Button0":
+                keyCode = 350;
+                break;
+            case "Joystick2Button0":
+                keyCode = 370;
+                break;
+            case "Joystick3Button0":
+                keyCode = 390;
+                break;
+            case "Joystick4Button0":
+                keyCode = 410;
+                break;
+            case "Joystick5Button0":
+                keyCode = 430;
+                break;
+            case "Joystick6Button0":
+                keyCode = 450;
+                break;
+            case "Joystick7Button0":
+                keyCode = 470;
+                break;
+            case "Joystick8Button0":
+                keyCode = 490;
+                break;
+            default: keyCode = 0;
+                break;
+        }
+
+        for (int i = 0; i < 20; i++)
         {
             // Log any key press
             if (Input.GetKeyDown((KeyCode)keyCode + i))
             {
-                UniversalJoystickMapper.CurrentJoystickBeingMapped.sourceKeyCodes[(int)button] = (KeyCode)keyCode + i;
-                Debug.Log(UniversalJoystickMapper.CurrentJoystickBeingMapped.name + " Joystick " + joyNum + " Button " + (keyCode+i)  + " @ " + Time.time);
+                currentJoystick.sourceKeyCodes[(int)button] = (KeyCode)keyCode + i;
+                Debug.Log(currentJoystick + " Joystick " +  joyNum + " Button " + (keyCode+i)  + " @ " + Time.time);
                 return true;
             }
 
-            buttonNum++; // Increment
+            //buttonNum++; // Increment
 
-            // Reset button count when we get to last joy button
-            if (buttonNum == 20)
-            {
-                buttonNum = 0;
-                joyNum++; // next joystick
-            }
+            //// Reset button count when we get to last joy button
+            //if (buttonNum == 20)
+            //{
+            //    buttonNum = 0;
+            //    joyNum++; // next joystick
+            //}
         }
         return false;
     }
+
+    //private bool GetJoystickButtonPressed()
+    //{
+    //    int joyNum = 1; // start at 1 because unity calls them joystick 1 - 4
+    //    int buttonNum = 0;
+    //    int keyCode = 350; // start at joy 1 keycode
+
+    //    // log button presses on 3 joysticks (20 button inputs per joystick)
+    //    // NOTE THAT joystick 4 is not supported via keycodes for some reason, so only polling 1-3
+    //    for (int i = 0; i < 160; i++)
+    //    {
+    //        // Log any key press
+    //        if (Input.GetKeyDown((KeyCode)keyCode + i))
+    //        {
+    //            JoystickConfig j = UniversalJoystickMapper.CurrentJoystickBeingMapped;
+    //            j.sourceKeyCodes[(int)button] = (KeyCode)keyCode + i;
+    //            Debug.Log(j + " Joystick " + (j.joystickNumber + 1) + " Button " + (keyCode + i) + " @ " + Time.time);
+    //            return true;
+    //        }
+
+    //        //buttonNum++; // Increment
+
+    //        //// Reset button count when we get to last joy button
+    //        //if (buttonNum == 20)
+    //        //{
+    //        //    buttonNum = 0;
+    //        //    joyNum++; // next joystick
+    //        //}
+    //    }
+    //    return false;
+    //}
 
     Buttons GetButtonValue(string buttonName)
     {

@@ -1,0 +1,85 @@
+{
+    "array": [
+        {
+            "name": "USB Joystick          ",
+            "platform": "WindowsEditor",
+            "joystickNumber": 3,
+            "sourceKeyCodes": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "sourceAxisNames": [
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+            ]
+        },
+        {
+            "name": "USB Joystick          ",
+            "platform": "WindowsEditor",
+            "joystickNumber": 1,
+            "sourceKeyCodes": [
+                372,
+                371,
+                370,
+                373,
+                375,
+                374,
+                373,
+                380,
+                378,
+                379,
+                377,
+                376
+            ],
+            "sourceAxisNames": [
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+            ]
+        },
+        {
+            "name": "Wireless Controller",
+            "platform": "WindowsEditor",
+            "joystickNumber": 0,
+            "sourceKeyCodes": [
+                351,
+                352,
+                353,
+                350,
+                355,
+                354,
+                361,
+                360,
+                358,
+                359,
+                357,
+                356
+            ],
+            "sourceAxisNames": [
+                "JoystickAxis 1",
+                "JoystickAxis 4",
+                "JoystickAxis 28",
+                "JoystickAxis 27",
+                "JoystickAxis 5",
+                "JoystickAxis 6"
+            ]
+        }
+    ]
+}

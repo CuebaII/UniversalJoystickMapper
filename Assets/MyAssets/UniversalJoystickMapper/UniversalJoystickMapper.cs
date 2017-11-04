@@ -9,7 +9,7 @@ public class UniversalJoystickMapper {
     #region Defaults
     public const int MAX_NUM_JOYSTICK = 8;
     public const int MAX_NUM_BUTTONS = 12;
-    public const int MAX_NUM_AXIS = 3;
+    public const int MAX_NUM_AXIS = 6;
     #endregion
 
     /// <summary>
@@ -56,7 +56,7 @@ public class UniversalJoystickMapper {
     public delegate void JoystickToMapChangedDelegate();
     public static event JoystickToMapChangedDelegate OnJoystickToMapChanged;
 
-    public GameObject joystickMapPanel;
+    public GameObject joystickConfigPanel;
 
     static bool DEBUG_ON = true;
     private static JsonData configData;
@@ -93,11 +93,12 @@ public class UniversalJoystickMapper {
                 }
             }
             //A joystick has been detached
-            else if (i < 3 && joysticksAttached[i] != null)
+            else if (joysticksAttached[i] != null)
             {
                 Debug.Log(Input.GetJoystickNames()[i] + " has been detached!");
                 joysticksAttached[i] = null;
-                ToggleMap();
+                if (CurrentJoystickBeingMapped.joystickNumber == i)
+                    CurrentJoystickBeingMapped = null;
             }
         }
     }
@@ -114,7 +115,10 @@ public class UniversalJoystickMapper {
                     {
                         Debug.Log(availableJoysticks[i].name + " has been plugged in has player " + (joyNum + 1) + "(LOADED)");
                         joysticksAttached[joyNum] = j;
-                        currentJoystickBeingMapped = (joysticksAttached[joyNum]);
+                        if (CurrentJoystickBeingMapped == null)
+                            CurrentJoystickBeingMapped = joysticksAttached[joyNum];
+                        else
+                            queueOfJoysticksToMap.Add(joysticksAttached[joyNum]);
                         return;
                     }
             }
@@ -124,7 +128,10 @@ public class UniversalJoystickMapper {
         newUnknownJoysticks.Add(newJoystick);
         joysticksAttached[joyNum] = newJoystick;
 
-        currentJoystickBeingMapped = newJoystick;
+        if (CurrentJoystickBeingMapped == null)
+            CurrentJoystickBeingMapped = newJoystick;
+        else
+            queueOfJoysticksToMap.Add(newJoystick);
         Debug.Log(Input.GetJoystickNames()[joyNum] + " has been plugged in has player " + (joyNum + 1) + "(NEW)");
     }
 
@@ -133,8 +140,8 @@ public class UniversalJoystickMapper {
         //If there is a Joystick to map
         if (CurrentJoystickBeingMapped != null)
         {
-            if (!joystickMapPanel.activeInHierarchy)
-                joystickMapPanel.SetActive(true);
+            joystickConfigPanel.SetActive(true);
+            Debug.Log("Current joystick being mapped is: " + currentJoystickBeingMapped.name);
         }
         //If there is not, check if there is a Joystick in the queue waiting to be mapped.
         //TODO: Set the current joystick being mapped to null somehow after completely mapped.
@@ -144,21 +151,19 @@ public class UniversalJoystickMapper {
             {
                 JoystickConfig newJoystickToMap = queueOfJoysticksToMap[0];
                 queueOfJoysticksToMap.RemoveAt(0);
+                joystickConfigPanel.SetActive(false);
                 CurrentJoystickBeingMapped = newJoystickToMap;
             }
             else
             {
-                joystickMapPanel.SetActive(false);
+                joystickConfigPanel.SetActive(false);
             }
         }
     }
 
-    public void ToggleMap()
+    public void CloseConfigPanel()
     {
-        if (joystickMapPanel.activeInHierarchy)
-            joystickMapPanel.SetActive(false);
-        else
-            joystickMapPanel.SetActive(true);
+        CurrentJoystickBeingMapped = null;
     }
 
     public static bool GetButtonDown(Buttons button)
@@ -190,6 +195,18 @@ public class UniversalJoystickMapper {
         for (int i = 0; i < joysticksAttached.Length; i++)
         {
             if (joysticksAttached[i] != null && joysticksAttached[i].GetButton(button))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static bool GetAxis(Axis axis)
+    {
+        for (int i = 0; i < joysticksAttached.Length; i++)
+        {
+            if (joysticksAttached[i] != null && joysticksAttached[i].GetAxis(axis))
             {
                 return true;
             }

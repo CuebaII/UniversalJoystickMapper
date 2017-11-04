@@ -41,13 +41,11 @@ public class AxisMapper : Selectable, IPointerClickHandler
     public event OnVariableChangeDelegate OnActiveChange;
     public event OnVariableChangeDelegate OnSubmitChange;
 
-    protected override void Start()
+    protected override void Awake()
     {
         OnActiveChange += OnActiveChangeHandler;
         OnSubmitChange += OnSubmitChangeHandler;
-        axis = GetButtonValue(axisNumber.text);
-        if (UniversalJoystickMapper.CurrentJoystickBeingMapped.sourceKeyCodes[(int)axis] != 0)
-            OnSubmit = true;
+        axis = GetAxisValue(axisNumber.text);
     }
 
     private void Update()
@@ -57,8 +55,17 @@ public class AxisMapper : Selectable, IPointerClickHandler
             m_IsActive = false;
             onSubmit = true;
         }
+    }
 
+    protected override void OnEnable()
+    {
+        if (UniversalJoystickMapper.CurrentJoystickBeingMapped.state.AxesStates[(int)axis])
+            OnSubmit = true;
+    }
 
+    protected override void OnDisable()
+    {
+        OnSubmit = false;
     }
 
     private void OnActiveChangeHandler(bool newValue)
@@ -73,6 +80,8 @@ public class AxisMapper : Selectable, IPointerClickHandler
     {
         if (newValue)
             m_image.color = Color.green;
+        else
+            m_image.color = Color.white;
     }
 
 
@@ -83,34 +92,41 @@ public class AxisMapper : Selectable, IPointerClickHandler
 
     private bool GetJoystickAxisPressed()
     {
-        int axisN = 1; // start at joy 1 keycode
+        JoystickConfig currentJoystick = UniversalJoystickMapper.CurrentJoystickBeingMapped;
+        int joyNum = currentJoystick.joystickNumber + 1;
+        int axisN = 1; // start at axis 1
 
-        // log button presses on 3 joysticks (20 button inputs per joystick)
-        // NOTE THAT joystick 4 is not supported via keycodes for some reason, so only polling 1-3
-        for (int i = 0; i < 26; i++)
+        for (int i = 0; i < 28; i++)
         {
             string sourceString = "JoystickAxis " + axisN;
             // Log any key press
             if (Input.GetAxis(sourceString) > 0)
             {
-                UniversalJoystickMapper.CurrentJoystickBeingMapped.sourceAxisName[(int)axis] = sourceString;
+                UniversalJoystickMapper.CurrentJoystickBeingMapped.sourceAxisNames[(int)axis] = sourceString;
                 Debug.Log(UniversalJoystickMapper.CurrentJoystickBeingMapped.name + " Joystick " + 
-                    UniversalJoystickMapper.CurrentJoystickBeingMapped.joystickNumber + " axis " + (axisN + i) + " @ " + Time.time);
+                    UniversalJoystickMapper.CurrentJoystickBeingMapped.joystickNumber + " axis " + (axisN) + " @ " + Time.time);
                 return true;
             }
+            axisN++;
         }
         return false;
     }
 
-    Axis GetButtonValue(string buttonName)
+    Axis GetAxisValue(string buttonName)
     {
-        if (buttonName == Convert.ToString(Axis.LeftStick))
-            return Axis.LeftStick;
-        else if (buttonName == Convert.ToString(Axis.RightStick))
-            return Axis.RightStick;
-        else if (buttonName == Convert.ToString(Axis.Dpad))
-            return Axis.Dpad;
-        
+        if (buttonName == "RAnalogX")
+            return Axis.RAnalogX;
+        else if (buttonName == "RAnalogY")
+            return Axis.RAnalogY;
+        else if (buttonName == "LAnalogX")
+            return Axis.LAnalogX;
+        else if (buttonName == "LAnalogY")
+            return Axis.LAnalogY;
+        else if (buttonName == "DpadX")
+            return Axis.DpadX;
+        else if (buttonName == "DpadY")
+            return Axis.DpadY;
+
 
         Debug.LogError("Invald axis set!");
         return Axis.None;
